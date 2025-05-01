@@ -1,7 +1,9 @@
 build $package="":
     podman run \
         --rm -it -v "${PWD}:/work:Z" --privileged \
-        cgr.dev/chainguard/melange build "packages/${package}.yaml" --arch host --signing-key melange.rsa
+        cgr.dev/chainguard/melange \
+        --workspace-dir /work \
+        build "packages/${package}.yaml" --arch host --signing-key melange.rsa
 
 build-container $package="" $import="1":
     #!/usr/bin/env bash
@@ -19,15 +21,18 @@ renovate:
 
 build-image:
     sudo podman build \
-        -v /dev:/dev \
         -t wolfi-bootc:latest .
 
 bootc *ARGS:
     sudo podman run \
         --rm --privileged --pid=host \
+        -it \
+        -v /sys/fs/selinux:/sys/fs/selinux \
+        -v /etc/containers:/etc/containers:Z \
         -v /var/lib/containers:/var/lib/containers \
         -v /dev:/dev \
-        -v .:/run/host:Z \
+        -v .:/data:Z \
         --security-opt label=type:unconfined_t \
-        wolfi-bootc:latest bootc {{ARGS}}
+        --entrypoint /bin/sh \
+        wolfi-bootc:latest {{ARGS}}
     

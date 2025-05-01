@@ -25,6 +25,7 @@ environment:
       - pkgconf
       - rust
       - coreutils
+      - systemd-dev
 
 pipeline:
   - uses: git-checkout
@@ -41,6 +42,10 @@ pipeline:
   - uses: autoconf/configure
     with:
       opts: |
+        --sysconfdir=/etc \
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --systemdsystemunitdir=/usr/lib/systemd \
         --enable-dracut-cpio
 
   - uses: autoconf/make-install

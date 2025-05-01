@@ -36,11 +36,13 @@ environment:
 pipeline:
   - uses: fetch
     with:
-      # uri: https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${{package.version}}.tar.xz
-      uri: http://localhost:8000/linux-${{package.version}}.tar.xz
+      uri: https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${{package.version}}.tar.xz
+      # uri: http://localhost:8000/linux-${{package.version}}.tar.xz
       expected-sha256: de0053cb413d408f20fd1d5788219951b8a4403e5dac1b1d9032090938acd199
 
-  - runs: make -j$(nproc)
+  - runs: |
+      cp kernel/.config .config
+      make -j$(nproc)
 
 subpackages:
   - name: kernel-core
@@ -48,10 +50,11 @@ subpackages:
     pipeline:
       - runs: |
           kernel_version=$(make kernelversion)
-          mkdir -p ${{targets.subpkgdir}}/usr/lib/${kernel_version}
-          cp ./arch/${{build.arch}}/boot/bzImage ${{targets.subpkgdir}}/usr/lib/${kernel_version}/vmlinuz
-          cp System.map ${{targets.subpkgdir}}/usr/lib/${kernel_version}/System.map
-          cp .config ${{targets.subpkgdir}}/usr/lib/${kernel_version}/config
+          modules_dir=${{targets.subpkgdir}}/usr/lib/modules/${kernel_version}
+          mkdir -p $modules_dir 
+          install -Dm0644 -t ${modules_dir}/ ./System.map
+          install -Dm0644 ./arch/${{build.arch}}/boot/bzImage ${modules_dir}/vmlinuz
+          install -Dm0644 ./.config ${modules_dir}/config
 
   - name: kernel-modules
     description: Kernel modules
@@ -59,7 +62,8 @@ subpackages:
       runtime:
         - kernel-core
     pipeline:
-      - runs: make -j$(nproc) modules_install INSTALL_MOD_PATH=${{targets.subpkgdir}}
+      - runs: |
+          make -j$(nproc) modules_install INSTALL_MOD_PATH=${{targets.subpkgdir}}/usr
 
   - name: kernel-headers
     description: Kernel headers
@@ -67,4 +71,4 @@ subpackages:
       runtime:
         - kernel-core
     pipeline:
-      - runs: make -j$(nproc) headers_install INSTALL_HDR_PATH=${{targets.subpkgdir}}
+      - runs: make -j$(nproc) headers_install INSTALL_HDR_PATH=${{targets.subpkgdir}}/usr

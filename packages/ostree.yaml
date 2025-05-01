@@ -5,6 +5,9 @@ package:
   description: "Operating system and container binary deployment and upgrades"
   target-architecture:
     - x86_64
+  dependencies:
+    runtime:
+      - systemd
   copyright:
     - license: GPL-2.0-only
 

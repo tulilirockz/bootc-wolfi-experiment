@@ -29,7 +29,6 @@ pipeline:
   - uses: fetch
     with:
       uri: https://github.com/coreos/bootupd/releases/download/v0.2.27/bootupd-0.2.27.tar.zstd
-      # uri: https://github.com/coreos/bootupd/releases/download/v${{package.version}}/bootupd-${{package.version}}.tar.zstd
       expected-sha256: 3253fa6621a68a0aa09c807fb619dc6aeb10f8d4cb5baedec8a51a3de635166f
       extract: "false"
 

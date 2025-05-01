@@ -5,3 +5,4 @@ packages/aarch64
 *.tar
 *.key
 *.base64
+*.img
