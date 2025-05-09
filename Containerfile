@@ -19,22 +19,37 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx apk add -X https://packages.
     /ctx/packages/$(arch)/boot*.apk \
     /ctx/packages/$(arch)/dracut*.apk \
     wolfi-base \
-    uutils \
+    coreutils \
     posix-libc-utils \
     systemd \
     systemd-init \
+    systemd-logind-service \
+    systemd-boot \
     strace \
     libselinux \
     findmnt \
     podman \
     btrfs-progs \
+    e2fsprogs \
+    xfsprogs \
     udev \
     cpio \
     losetup \
     zstd \
     lsblk \
     binutils \
-    sfdisk
+    sfdisk \
+    dosfstools \
+    conmon \
+    crun \
+    netavark \
+    wipefs \
+    skopeo \
+    util-linux-login \
+    dbus \
+    dbus-glib \
+    glib \
+    shadow
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx apk add -X https://packages.wolfi.dev/os --allow-untrusted -U --initdb -p /mnt \
     /ctx/packages/$(arch)/kernel*.apk
@@ -51,7 +66,7 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx apk add --allow-untrusted \
 RUN mkdir -p /mnt/sysroot/ostree && \
     ostree init --repo /mnt/sysroot/ostree/repo --verbose
 
-RUN ostree commit --repo /mnt/sysroot/ostree/repo --branch latest --no-xattrs --bootable /mnt --verbose
+RUN ostree commit --repo /mnt/sysroot/ostree/repo --branch latest --bootable /mnt --no-xattrs --verbose
 
 # Turn the pacstrapped rootfs into a container image.
 FROM scratch

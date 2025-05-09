@@ -1,7 +1,7 @@
 package:
   name: kernel
-  version: 6.13.6
-  epoch: 1
+  version: 6.13.8
+  epoch: 0
   description: The Linux kernel
   target-architecture:
     - x86_64
@@ -14,7 +14,6 @@ environment:
       - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
     repositories:
       - https://packages.wolfi.dev/os
-      # - https://dl-cdn.alpinelinux.org/alpine/edge/main
     packages:
       - bison
       - flex
@@ -37,8 +36,7 @@ pipeline:
   - uses: fetch
     with:
       uri: https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${{package.version}}.tar.xz
-      # uri: http://localhost:8000/linux-${{package.version}}.tar.xz
-      expected-sha256: de0053cb413d408f20fd1d5788219951b8a4403e5dac1b1d9032090938acd199
+      expected-sha256: 259afa59d73d676bec2ae89beacd949e08d54d3f70a7f8b0a742315095751abb
 
   - runs: |
       cp kernel/.config .config

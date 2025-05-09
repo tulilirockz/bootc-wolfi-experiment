@@ -33,6 +33,11 @@ bootc *ARGS:
         -v /dev:/dev \
         -v .:/data:Z \
         --security-opt label=type:unconfined_t \
-        --entrypoint /bin/sh \
-        wolfi-bootc:latest {{ARGS}}
-    
+        wolfi-bootc:latest bootc {{ARGS}}
+
+generate-bootable-image:
+    #!/usr/bin/env bash
+    if [ ! -e ./bootable.img ] ; then
+        fallocate -l 20G bootable.img
+    fi
+    just bootc install to-disk --via-loopback /data/bootable.img --filesystem ext4
