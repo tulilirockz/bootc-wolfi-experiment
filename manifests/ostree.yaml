@@ -3,22 +3,11 @@ package:
   version: 2025.2
   epoch: 0
   description: "Operating system and container binary deployment and upgrades"
-  target-architecture:
-    - x86_64
-  dependencies:
-    runtime:
-      - systemd
   copyright:
     - license: GPL-2.0-only
 
 environment:
   contents:
-    repositories:
-      - https://packages.wolfi.dev/os
-      - /work/packages
-    keyring:
-      - ./melange.rsa.pub
-      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
     packages:
       - busybox
       - build-base
@@ -38,7 +27,6 @@ environment:
       - systemd-dev
       - libselinux-dev
       - curl-dev
-      - dracut
       - composefs-dev
 
 pipeline:
@@ -68,12 +56,11 @@ pipeline:
 
   - uses: strip
 
-
 subpackages:
   - name: ostree-dev
     description: Headers and dev libraries from ostree
     pipeline:
       - uses: split/dev
-    dependencies:
-      runtime:
-        - ostree
+    test:
+      pipeline:
+        - uses: test/ldd-check

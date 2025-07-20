@@ -16,8 +16,10 @@ COPY --from=ctx /files/wolfi-defaultfs.conf /mnt/usr/lib/bootc/install/
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx apk add -X https://packages.wolfi.dev/os --allow-untrusted -U --initdb -p /mnt \
     /ctx/packages/$(arch)/ostree*.apk \
     /ctx/packages/$(arch)/composefs*.apk \
-    /ctx/packages/$(arch)/boot*.apk \
+    /ctx/packages/$(arch)/bootc*.apk \
+    /ctx/packages/$(arch)/bootupd*.apk \
     /ctx/packages/$(arch)/dracut*.apk \
+    /ctx/packages/$(arch)/kernel*.apk \
     wolfi-base \
     coreutils \
     posix-libc-utils \
@@ -51,8 +53,6 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx apk add -X https://packages.
     glib \
     shadow
 
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx apk add -X https://packages.wolfi.dev/os --allow-untrusted -U --initdb -p /mnt \
-    /ctx/packages/$(arch)/kernel*.apk
 
 # Add ostree tmpfile
 COPY --from=ctx files/ostree-0-integration.conf /mnt/usr/lib/tmpfiles.d/

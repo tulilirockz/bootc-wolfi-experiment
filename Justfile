@@ -1,19 +1,36 @@
+export MELANGE_IMAGE := env("MELANGE_IMAGE", "cgr.dev/chainguard/melange:latest")
+export SIGNING_KEY_PATH := env("SIGNING_KEY_PATH", "melange.rsa")
+export MELANGE_RUNNER := env("MELANGE_RUNNER", "docker")
+export PACKAGES_DIR := env("PACKAGES_DIR", "manifests")
+export MELANGE_OPTS := "
+    -i
+    --debug
+    --log-level=DEBUG
+    --fail-on-lint-warning
+    --arch host
+    --pipeline-dir ./pipelines
+    --lint-require
+    --lint-warn
+    --repository-append https://packages.wolfi.dev/os
+    --keyring-append https://packages.wolfi.dev/os/wolfi-signing.rsa.pub"
+
+keygen *$ARGS:
+    podman run --rm -it -v "${PWD}:/work:Z" -w /work \
+        "${MELANGE_IMAGE}" \
+        keygen $ARGS
+
 build $package="":
-    podman run \
-        --rm -it -v "${PWD}:/work:Z" --privileged \
-        cgr.dev/chainguard/melange \
-        --workspace-dir /work \
-        build "packages/${package}.yaml" --arch host --signing-key melange.rsa
+    melange build $MELANGE_OPTS "${PACKAGES_DIR}/${package}.yaml" --repository-append "./packages" --source-dir "${PACKAGES_DIR}/${package}" --keyring-append "${SIGNING_KEY_PATH}.pub" --signing-key "${SIGNING_KEY_PATH}" --runner "${MELANGE_RUNNER}"
 
-build-container $package="" $import="1":
-    #!/usr/bin/env bash
-    podman run \
-        --rm -it --workdir /work -v "${PWD}:/work:Z" \
-        cgr.dev/chainguard/apko build "containers/${package}.yaml" "${package}:latest" "${package}.tar" --arch host
+build-tree:
+    echo "This will build all packages required for Wolfi Bootc"
+    just build composefs
+    just build ostree
+    just build bootc
 
-    if [ "${import}" == "1" ] ; then
-        podman load < "${package}.tar"
-    fi
+    just build dracut
+    just build kernel
+
 
 renovate:
     #!/usr/bin/env bash

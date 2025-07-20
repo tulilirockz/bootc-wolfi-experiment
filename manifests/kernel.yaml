@@ -1,19 +1,13 @@
 package:
   name: kernel
-  version: 6.13.8
-  epoch: 0
+  version: 6.15.6
+  epoch: 1
   description: The Linux kernel
-  target-architecture:
-    - x86_64
   copyright:
     - license: GPL-2.0
 
 environment:
   contents:
-    keyring:
-      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
-    repositories:
-      - https://packages.wolfi.dev/os
     packages:
       - bison
       - flex
@@ -31,15 +25,21 @@ environment:
       - perl
       - kmod
       - rsync
+      - gawk
+      - gnutar
+      - openssl
 
 pipeline:
   - uses: fetch
     with:
       uri: https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${{package.version}}.tar.xz
-      expected-sha256: 259afa59d73d676bec2ae89beacd949e08d54d3f70a7f8b0a742315095751abb
+      expected-sha256: 2bb586c954277d070c8fdf6d7275faa93b4807d9bf3353b491d8149cca02b4fc
 
   - runs: |
-      cp kernel/.config .config
+      make prepare
+      make modules_prepare
+
+  - runs: |
       make -j$(nproc)
 
 subpackages:
@@ -48,11 +48,11 @@ subpackages:
     pipeline:
       - runs: |
           kernel_version=$(make kernelversion)
-          modules_dir=${{targets.subpkgdir}}/usr/lib/modules/${kernel_version}
-          mkdir -p $modules_dir 
-          install -Dm0644 -t ${modules_dir}/ ./System.map
-          install -Dm0644 ./arch/${{build.arch}}/boot/bzImage ${modules_dir}/vmlinuz
-          install -Dm0644 ./.config ${modules_dir}/config
+          mkdir -p ${{targets.subpkgdir}}/usr/lib/${kernel_version}
+          cp ./arch/${{build.arch}}/boot/bzImage ${{targets.subpkgdir}}/usr/lib/${kernel_version}/vmlinuz
+          cp System.map ${{targets.subpkgdir}}/usr/lib/${kernel_version}/System.map
+          cp .config ${{targets.subpkgdir}}/usr/lib/${kernel_version}/config
+          mkdir -p ${{targets.subpkgdir}}/usr/lib
 
   - name: kernel-modules
     description: Kernel modules
@@ -69,4 +69,4 @@ subpackages:
       runtime:
         - kernel-core
     pipeline:
-      - runs: make -j$(nproc) headers_install INSTALL_HDR_PATH=${{targets.subpkgdir}}/usr
+      - runs: make -j$(nproc) headers_install INSTALL_HDR_PATH=${{targets.subpkgdir}}
